@@ -1,6 +1,7 @@
 name: Build "Talos PXE" container Image
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "talos_pxe/**"

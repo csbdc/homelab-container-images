@@ -1,6 +1,7 @@
 name: Build "Bin notifier" container Image
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "bin_notifier/**"
