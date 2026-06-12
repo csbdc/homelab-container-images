@@ -1,6 +1,9 @@
 name: Build "Talos PXE" container Image
 
-on: workflow_dispatch
+on:
+  push:
+    paths:
+      - "talos_pxe/**"
 
 env:
   REGISTRY: ghcr.io

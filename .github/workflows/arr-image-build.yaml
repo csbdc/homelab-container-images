@@ -1,7 +1,9 @@
 name: Build "Arr" container Images
 
-on: workflow_dispatch
-
+on:
+  push:
+    paths:
+      - "arr_apps/**"
 env:
   REGISTRY: ghcr.io
 
