@@ -1,0 +1,34 @@
+FROM alpine AS downloader
+ARG talos_version=v1.13.3
+WORKDIR /downloads
+RUN apk add wget \
+    && wget -O vmlinuz https://github.com/siderolabs/talos/releases/download/${talos_version}/vmlinuz-amd64 \
+    && wget -O initramfs.xz https://github.com/siderolabs/talos/releases/download/${talos_version}/initramfs-amd64.xz
+
+FROM --platform=amd64 alpine AS pxe_builder
+ARG pxe_ip=""
+WORKDIR /git
+COPY script.ipxe /git/
+RUN apk add git make build-base perl \
+    && git clone https://github.com/ipxe/ipxe.git \
+    && sed -i "s/IP_PLACEHOLDER/${pxe_ip}/" script.ipxe \
+    && mv script.ipxe /git/ipxe/src && cd ipxe/src \
+    && make bin-x86_64-efi/snponly.efi EMBED=script.ipxe \
+    && mkdir /done && cp bin-x86_64-efi/snponly.efi /done/
+
+FROM alpine
+LABEL org.opencontainers.image.title="Talos PXE Server"
+LABEL org.opencontainers.image.description="PXE boot environment for Talos Linux using iPXE, dnsmasq and nginx"
+LABEL org.opencontainers.image.source="https://github.com/csbdc/talos-pxe"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.vendor="CSBDC"
+COPY entrypoint.sh /entrypoint.sh
+RUN apk add --no-cache dnsmasq nginx \
+    && chmod +x /entrypoint.sh
+COPY --from=pxe_builder /done /srv/tftp/
+COPY --from=downloader /downloads /var/www/localhost/htdocs/talos/
+COPY default.conf /etc/nginx/http.d/
+COPY dnsmasq.conf /etc/dnsmasq.d/
+EXPOSE 80/tcp 69/udp
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD ["sh"]

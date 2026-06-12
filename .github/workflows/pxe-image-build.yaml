@@ -1,0 +1,49 @@
+name: Build "Talos PXE" container Image
+
+on: workflow_dispatch
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      talos_version: v1.13.3
+      pxe_ip: 192.168.40.10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/csbdc/talos-pxe
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: container-images/talos_pxe/
+          push: true
+          build-args: |
+            talos_version=${{ env.talos_version }}
+            pxe_ip=${{ env.pxe_ip }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

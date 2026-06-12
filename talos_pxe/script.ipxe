@@ -1,0 +1,17 @@
+#!ipxe
+
+dhcp
+
+set base http://IP_PLACEHOLDER/talos
+
+kernel ${base}/vmlinuz \
+talos.platform=metal \
+slab_nomerge \
+pti=on \
+console=tty0 console=ttyS0,115200 \
+loglevel=7 \
+panic=debug
+
+initrd ${base}/initramfs.xz
+
+boot

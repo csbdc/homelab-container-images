@@ -1,0 +1,31 @@
+FROM debian:bookworm-slim
+
+ARG app=
+ARG dlpackage=
+ARG packages="curl wget sqlite3 ca-certificates tar bash libicu72"
+ARG port=
+ARG config_directory="/config"
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /tmp
+RUN apt-get update && apt-get install -y $packages\
+    && rm -rf /var/lib/apt/lists/* \
+    && addgroup --system $app && adduser --system --ingroup $app $app \
+    && mkdir -p "/opt/$app" \
+    && mkdir -p $config_directory \
+    && wget -O "$app.tar.gz" "$dlpackage" \
+    && tar -xvzf "$app.tar.gz"\
+    && rm "$app.tar.gz" \
+    && mv "${app^}"/* "/opt/$app/" \
+    && echo "#!/bin/bash" > /entrypoint.sh \
+    && echo "set -e" >> /entrypoint.sh \
+    && echo "exec /opt/$app/${app^} -nobrowser -data=$config_directory" >> /entrypoint.sh \
+    && chown -R "$app:$app" "/opt/$app" $config_directory /entrypoint.sh \
+    && chmod +x /entrypoint.sh
+
+USER $app
+WORKDIR $config_directory
+EXPOSE $port
+
+ENTRYPOINT [ "/entrypoint.sh" ]
