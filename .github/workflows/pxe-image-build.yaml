@@ -38,7 +38,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: container-images/talos_pxe/
+          context: talos_pxe/
           push: true
           build-args: |
             talos_version=${{ env.talos_version }}

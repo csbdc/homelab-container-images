@@ -50,7 +50,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: container-images/arr_apps/
+          context: arr_apps/
           push: true
           build-args: |
             app=${{ matrix.image_name }}
