@@ -17,7 +17,7 @@ jobs:
       packages: write
     env:
       talos_version: v1.13.3
-      pxe_ip: 192.168.40.10
+      pxe_ip: 192.168.1.2
 
     steps:
       - name: Checkout repository
