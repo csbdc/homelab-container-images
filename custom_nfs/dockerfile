@@ -1,0 +1,13 @@
+FROM alpine
+LABEL org.opencontainers.image.title="Custom NFS Server"
+LABEL org.opencontainers.image.description="Custom NFS Server to be used for internal services on Kubernetes homelab, Single NODE"
+LABEL org.opencontainers.image.source="https://github.com/csbdc/custom-nfs"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.vendor="CSBDC"
+COPY entrypoint.sh /entrypoint.sh
+RUN apk add --no-cache nfs-utils \
+    && chmod +x /entrypoint.sh \
+    && mkdir /srv/nfs
+EXPOSE 2049/tcp
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD ["sh"]
