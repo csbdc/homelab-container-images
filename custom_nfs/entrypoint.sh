@@ -1,27 +1,35 @@
 #!/bin/sh
-set -eux
+set -e
 
-echo "[nfs] starting"
+echo "[NFS] Starting RPC services..."
 
+# RPC bind must start first
+rpcbind -w
+
+# Ensure kernel NFS support is mounted
 mkdir -p /proc/fs/nfsd
+mount -t nfsd nfsd /proc/fs/nfsd 2>/dev/null || true
 
-mountpoint -q /proc/fs/nfsd || mount -t nfsd nfsd /proc/fs/nfsd
+echo "[NFS] Writing exports..."
 
-echo "[nfs] starting kernel nfsd FIRST"
-
-rpc.nfsd 8
-
-# small delay to ensure kernel threads are registered
-sleep 1
-
-echo "[nfs] writing exports"
-
-cat > /etc/exports <<EOF
-/srv/nfs *(rw,sync,no_subtree_check,no_root_squash,fsid=0)
+cat <<EOF > /etc/exports
+/exports *(rw,sync,no_subtree_check,no_root_squash,insecure)
 EOF
 
 exportfs -rav
 
-echo "[nfs] ready"
+echo "[NFS] Starting NFS daemons..."
 
-exec dmesg -w
+# Start kernel NFS server threads
+rpc.nfsd 8
+
+# Mount daemon (required for clients)
+rpc.mountd -F
+
+# Statd for locking
+rpc.statd -F
+
+echo "[NFS] Ready. Serving /exports"
+
+# Keep container alive
+tail -f /dev/null
