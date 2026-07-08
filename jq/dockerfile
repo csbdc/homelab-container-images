@@ -1,0 +1,12 @@
+FROM alpine:3.20
+LABEL org.opencontainers.image.title="JQ"
+LABEL org.opencontainers.image.description="Container for JQ"
+LABEL org.opencontainers.image.source="https://github.com/csbdc/jq"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.vendor="CSBDC"
+
+RUN apk add --no-cache jq
+
+USER 10000:10000
+
+ENTRYPOINT ["/bin/sh"]
